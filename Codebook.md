@@ -1,0 +1,2 @@
+## Code book
+ This repository includes a raw dataset, in directory "UCI HAR Dataset", and two cleaned datasets in directories "TidyData/Dataset_1" and "TidyData/Dataset_2". This document describes the two cleaned datasets. The raw dataset is described by "UCI HAR Dataset/features_info.txt".
