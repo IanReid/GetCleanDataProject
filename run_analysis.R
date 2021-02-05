@@ -37,57 +37,37 @@ merged.df <- bind_rows(train.df, test.df)
 rm(list=c("train.df", "test.df"))
 
 ## Extract means and standard deviations for each measurement
-observations <- mutate(merged.df, observation = 1:dim(merged.df)[1])
-mean_labels <-grep("mean[^F]", names(observations),value = TRUE)
-means.table <- observations %>% 
-  select(all_of(c("observation", "subject", "activity", mean_labels))) %>% 
-  rename_with(function(x) {sub(".mean..", "", x, fixed = T)})
-
-std_labels <-grep(".std..", names(observations),value = TRUE)
-standard_deviation.table <- observations %>% 
-  select(all_of(c("observation", "subject", "activity", std_labels))) %>% 
-  rename_with(function(x) {sub(".std..", "", x, fixed = T)})
+select_labels <-grep(".mean[^F].|.std..", names(merged.df),value = TRUE)
+mean.std.table <- merged.df  %>% 
+  select(all_of(c("subject", "activity", select_labels)))
 
 ## Assign descriptive names to the activities in the data set
 activity_labels <- read.table(fs::path("UCI HAR Dataset","activity_labels.txt"))
 activities <- tolower(activity_labels$V2)
-means.table <- mutate(means.table,activity = activities[activity])
-standard_deviation.table <- mutate(standard_deviation.table,
-                                   activity = activities[activity])
+mean.std.table <- mutate(mean.std.table,activity = activities[activity])
 
 ## Label the data set with descriptive variable names
 #Expand abbreviations in existing names
-means.table <- means.table %>% 
+mean.std.table <- mean.std.table %>% 
   rename_with(function(x) {sub("^t", "TimeDomain", x, fixed = F)}) %>%
   rename_with(function(x) {sub("^f", "FrequencyDomain", x, fixed = F)}) %>%
   rename_with(function(x) {sub("Acc", "Acceleration", x, fixed = T)}) %>%
   rename_with(function(x) {sub("Gyro", "Gyroscope", x, fixed = T)}) %>%
   rename_with(function(x) {sub("Mag", "Magnitude", x, fixed = T)}) %>%
-  rename_with(function(x) {sub("X$", "Xcomponent", x, fixed = F)}) %>%
-  rename_with(function(x) {sub("Y$", "Ycomponent", x, fixed = F)}) %>%
-  rename_with(function(x) {sub("Z$", "Zcomponent", x, fixed = F)}) 
-
-standard_deviation.table <- standard_deviation.table %>% 
-  rename_with(function(x) {sub("^t", "TimeDomain", x, fixed = F)}) %>%
-  rename_with(function(x) {sub("^f", "FrequencyDomain", x, fixed = F)}) %>%
-  rename_with(function(x) {sub("Acc", "Acceleration", x, fixed = T)}) %>%
-  rename_with(function(x) {sub("Gyro", "Gyroscope", x, fixed = T)}) %>%
-  rename_with(function(x) {sub("Mag", "Magnitude", x, fixed = T)}) %>%
-  rename_with(function(x) {sub("X$", "Xcomponent", x, fixed = F)}) %>%
-  rename_with(function(x) {sub("Y$", "Ycomponent", x, fixed = F)}) %>%
-  rename_with(function(x) {sub("Z$", "Zcomponent", x, fixed = F)}) 
+  rename_with(function(x) {sub("mean.", "Mean", x, fixed = T)}) %>%
+  rename_with(function(x) {sub("std.", "StandardDeviation", x, fixed = T)}) %>%
+  rename_with(function(x) {sub(".X$", "Xcomponent", x, fixed = F)}) %>%
+  rename_with(function(x) {sub(".Y$", "Ycomponent", x, fixed = F)}) %>%
+  rename_with(function(x) {sub(".Z$", "Zcomponent", x, fixed = F)}) %>%
+  rename_with(function(x) {sub("\\.$", "", x, fixed = F)}) 
 
 # Save tidy data
 fs::dir_create("TidyData")
-fs::dir_create(fs::path("TidyData","Dataset_1"))
-write.table(means.table,fs::path("TidyData","Dataset_1","MeasurementMeans.tsv"),
-            sep = "\t", row.names = FALSE)
-write.table(standard_deviation.table,fs::path("TidyData","Dataset_1","MeasurementStandardDeviations.tsv"),
+write.table(mean.std.table,fs::path("TidyData","MeasurementMeansAndStandardDeviations.tsv"),
             sep = "\t", row.names = FALSE)
 
 ## Create a second tidy data set containing the average of each variable for each
 ## activity and each subject
-fs::dir_create(fs::path("TidyData","Dataset_2"))
 
 activity.means <- means.table %>% select(-c(subject, observation)) %>% group_by(activity) %>% 
   summarize(across(.cols = where(is.numeric), .fns = mean))
