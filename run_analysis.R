@@ -84,4 +84,3 @@ activity.or.subject.means <- bind_rows(activity.means, subject.means)
 write.table(activity.or.subject.means,fs::path("TidyData","AverageByActivityOrSubjectOfMeasurementMeansAndStandardDeviations.tsv"),
             sep = "\t", row.names = FALSE)
 
-
