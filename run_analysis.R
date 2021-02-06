@@ -69,23 +69,19 @@ write.table(mean.std.table,fs::path("TidyData","MeasurementMeansAndStandardDevia
 ## Create a second tidy data set containing the average of each variable for each
 ## activity and each subject
 
-activity.means <- means.table %>% select(-c(subject, observation)) %>% group_by(activity) %>% 
-  summarize(across(.cols = where(is.numeric), .fns = mean))
-write.table(activity.means,fs::path("TidyData","Dataset_2","AverageByActivityOfMeasurementMeans.tsv"),
+activity.means <- mean.std.table %>% select(-subject) %>% group_by(activity) %>% 
+  summarize(across(.cols = where(is.numeric), .fns = mean)) 
+write.table(activity.means,fs::path("TidyData","AverageByActivityOfMeasurementMeansAndStandardDeviations.tsv"),
             sep = "\t", row.names = FALSE)
 
-subject.means <- means.table %>% select(-c(activity, observation)) %>% group_by(subject) %>% 
+subject.means <- mean.std.table %>% select(-activity) %>% group_by(subject) %>% 
   summarize(across(.cols = where(is.numeric), .fns = mean))
-write.table(subject.means,fs::path("TidyData","Dataset_2","AverageBySubjectOfMeasurementMeans.tsv"),
+write.table(subject.means,fs::path("TidyData","AverageBySubjectOfMeasurementMeansAndStandardDeviations.tsv"),
             sep = "\t", row.names = FALSE)
 
-activity.sds <- standard_deviation.table %>% select(-c(subject, observation)) %>% group_by(activity) %>% 
-  summarize(across(.cols = where(is.numeric), .fns = mean))
-write.table(activity.sds,fs::path("TidyData","Dataset_2","AverageByActivityOfMeasurementStandardDeviations.tsv"),
+# Combine activity means and subject means in one data frame
+activity.or.subject.means <- bind_rows(activity.means, subject.means)
+write.table(activity.or.subject.means,fs::path("TidyData","AverageByActivityOrSubjectOfMeasurementMeansAndStandardDeviations.tsv"),
             sep = "\t", row.names = FALSE)
 
-subject.sds <- standard_deviation.table %>% select(-c(activity, observation)) %>% group_by(subject) %>% 
-  summarize(across(.cols = where(is.numeric), .fns = mean))
-write.table(subject.sds,fs::path("TidyData","Dataset_2","AverageBySubjectOfMeasurementStandardDeviations.tsv"),
-            sep = "\t", row.names = FALSE)
 
