@@ -62,25 +62,13 @@ mean.std.table <- mean.std.table %>%
   rename_with(function(x) {sub("\\.$", "", x, fixed = F)}) 
 
 # Save tidy data
-fs::dir_create("TidyData")
-write.table(mean.std.table,fs::path("TidyData","MeasurementMeansAndStandardDeviations.tsv"),
-            sep = "\t", row.names = FALSE)
+write.table(mean.std.table,"Observations.tsv", sep = "\t", row.names = FALSE)
 
 ## Create a second tidy data set containing the average of each variable for each
 ## activity and each subject
 
-activity.means <- mean.std.table %>% select(-subject) %>% group_by(activity) %>% 
-  summarize(across(.cols = where(is.numeric), .fns = mean)) 
-write.table(activity.means,fs::path("TidyData","AverageByActivityOfMeasurementMeansAndStandardDeviations.tsv"),
-            sep = "\t", row.names = FALSE)
+subject.activity.means <- mean.std.table %>% group_by(subject, activity) %>% 
+  summarize(across(where(is.numeric), mean)) 
 
-subject.means <- mean.std.table %>% select(-activity) %>% group_by(subject) %>% 
-  summarize(across(.cols = where(is.numeric), .fns = mean))
-write.table(subject.means,fs::path("TidyData","AverageBySubjectOfMeasurementMeansAndStandardDeviations.tsv"),
-            sep = "\t", row.names = FALSE)
-
-# Combine activity means and subject means in one data frame
-activity.or.subject.means <- bind_rows(activity.means, subject.means)
-write.table(activity.or.subject.means,fs::path("TidyData","AverageByActivityOrSubjectOfMeasurementMeansAndStandardDeviations.tsv"),
-            sep = "\t", row.names = FALSE)
+write.table(subject.activity.means,"Summary.tsv", sep = "\t", row.names = FALSE)
 
